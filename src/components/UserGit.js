@@ -19,6 +19,11 @@ const Follow = styled.div`
   display: flex;
   justify-content: space-around;
 `
+
+const Syntax = styled(SyntaxHighlighter)`
+  text-align: justify;
+`
+
 const request = axios.create({
   baseURL: 'https://api.github.com'
 })
@@ -27,49 +32,57 @@ class UserGit extends Component {
   constructor() {
     super()
     this.state = {
-      data: []
+      users: [],
+      error: null
     }
   }
 
   render() {
-    console.log(this.state.data)
-
     return (
-      <div>
-        <StyledDiv>
-          <h1>Welcome my Profile</h1>
-          <StyledName>
-            <h2>{this.state.data.login}</h2>
-          </StyledName>
-          <StyledImg src={this.state.data.avatar_url} alt="" />
-          <Follow>
-            <p>
-              followers : {this.state.data.following}
-              {this.state.data.followers}.k
-            </p>{' '}
-            <p>following : {this.state.data.followers}</p>
-          </Follow>
-        </StyledDiv>
-        <p>
-          URL: <a href={this.state.data.html_url}>{this.state.data.html_url}</a>
-        </p>
-        <SyntaxHighlighter style={githubGist}>
-          {JSON.stringify(this.state.data, null, 2)}
-        </SyntaxHighlighter>
-      </div>
+      <StyledDiv>
+        <h1>Welcome my Profile</h1>
+
+        {this.state.users.length > 1 &&
+          this.state.users.map(user => {
+            return (
+              <div>
+                <StyledName>
+                  <h2>{user.login}</h2>
+                </StyledName>
+                <StyledImg src={user.avatar_url} alt="" />
+                <Follow>
+                  <p>Followers: {user.followers}</p>{' '}
+                  <p>Following: {user.following}</p>
+                </Follow>
+                <p>
+                  URL: <a href={user.html_url}>{user.html_url}</a>
+                </p>
+                <Syntax style={githubGist}>
+                  {JSON.stringify(user, null, 2)}
+                </Syntax>
+              </div>
+            )
+          })}
+      </StyledDiv>
     )
   }
+
   componentDidMount() {
+    this.getUserProfile('ajinbramantio')
+    this.getUserProfile('saktyd')
+  }
+
+  getUserProfile = username => {
     request
-      .get('/users/ajinbramantio')
+      .get(`/users/${username}`)
       .then(response => {
         this.setState({
-          data: response.data
+          users: this.state.users.concat(response.data)
         })
       })
       .catch(error => {
         this.setState({
-          data: error
+          error: error
         })
       })
   }
